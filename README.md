@@ -17,11 +17,11 @@ O projeto é um **monorepo** composto por:
 
 ```
 ┌──────────────────────────┐        ┌──────────────────────────────────────────┐
-│       Frontend           │  HTTP  │                  Backend (BFF)           │
-│   (em desenvolvimento)   │ ─────► │  /api/dashboard   →  DashboardService     │
-│                          │        │  /api/clients     →  Client Use Cases     │
-│                          │        │  /api/quotes      →  Quote Use Cases      │
-│                          │        │  /api-docs        →  Swagger UI           │
+│       Frontend (SPA)     │  HTTP  │                  Backend (BFF)           │
+│  React + Vite + Tailwind │ ─────► │  /api/dashboard   →  DashboardService     │
+│  ├─ Dashboard            │        │  /api/clients     →  Client Use Cases     │
+│  ├─ Orçamentos           │        │  /api/quotes      →  Quote Use Cases      │
+│  └─ Clientes             │        │  /api-docs        →  Swagger UI           │
 └──────────────────────────┘        └──────────────┬───────────────────────────┘
                                                    │ Prisma (ORM)
                                                    ▼
@@ -203,7 +203,13 @@ Com o backend rodando na porta `3333` e o frontend na `5173`, acesse:
 http://localhost:5173
 ```
 
-A tela carrega KPIs (orçamentos aprovados, aguardando resposta e taxa de conversão) e o histórico recente de orçamentos, tudo consumido do endpoint BFF `GET /api/dashboard`.
+O frontend é uma **SPA (Single Page Application)** com navegação entre as páginas:
+
+| Página       | Descrição                                                                 |
+| ------------ | ------------------------------------------------------------------------- |
+| **Dashboard**| KPIs (orçamentos aprovados, aguardando resposta e taxa de conversão) + histórico recente de orçamentos, consumidos do endpoint BFF `GET /api/dashboard`. |
+| **Orçamentos**| Lista de orçamentos com filtros, paginação e ações (baixar PDF, copiar link, editar). *(em desenvolvimento)* |
+| **Clientes** | CRUD completo de clientes com busca, paginação, máscaras de telefone/CEP e validação de formulário. |
 
 ### Documentação Interativa (Swagger)
 
@@ -319,11 +325,22 @@ Este projeto segue uma política rigorosa de segurança:
 
 ## 🧪 Status do Projeto
 
-- [x] Backend BFF (Dashboard, Clientes, Orçamentos)
-- [x] Swagger (OpenAPI 3.0)
+### Backend (BFF)
+
+- [x] API REST completa (Dashboard, Clientes, Orçamentos)
+- [x] Swagger (OpenAPI 3.0) em `/api-docs`
 - [x] Docker + docker-compose
 - [x] Deploy configurado para Render (Docker runtime)
-- [x] Frontend Dashboard (React + Vite + Tailwind) consumindo o BFF
+- [x] Padrão BFF (dados formatados para o frontend)
+- [x] Clean Architecture + SOLID + Injeção de Dependência
+
+### Frontend (SPA)
+
+- [x] Dashboard com KPIs e histórico recente
+- [x] CRUD de Clientes (busca, paginação, validação)
+- [x] Navegação entre páginas (Dashboard, Orçamentos, Clientes)
+- [x] Design System com Tailwind CSS (tokens de cor, tipografia, espaçamento)
+- [ ] Página de Orçamentos (em desenvolvimento)
 - [ ] Autenticação (JWT)
 - [ ] Testes unitários e de integração
 - [ ] CI/CD pipeline
