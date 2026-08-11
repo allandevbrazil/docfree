@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { Quote, QuoteInput, QuoteItemInput, QuoteStatus } from "../types/quote";
 import {
   createQuote,
@@ -185,6 +185,7 @@ export function Quotes({ activePage, onNavigate }: QuotesProps) {
   const [isNew, setIsNew] = useState(false);
 
   const formDisabled = !isNew && !selectedId;
+  const editorRef = useRef<HTMLElement | null>(null);
 
   async function load() {
     setLoading(true);
@@ -288,6 +289,7 @@ export function Quotes({ activePage, onNavigate }: QuotesProps) {
     setErrors({});
     setForm(EMPTY);
     fill(q);
+    editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function handleNew() {
@@ -507,7 +509,7 @@ export function Quotes({ activePage, onNavigate }: QuotesProps) {
         <div className="border-t border-dashed border-outline-variant w-full" />
 
         {/* ===== Lower Half: Editor ===== */}
-        <section className="flex flex-col gap-lg pb-xl">
+        <section ref={editorRef} className="flex flex-col gap-lg pb-xl scroll-mt-6">
           <div>
             <h2 className="font-headline-md text-headline-md font-semibold text-primary">
               Editor de Orçamento
