@@ -14,18 +14,79 @@ interface ClientsProps {
   onNavigate: (page: PageKey) => void;
 }
 
+type FormErrors = Partial<Record<keyof ClientInput, string>>;
+
 const EMPTY: ClientInput = {
   name: "", email: "", phone: "", company: "", cep: "", street: "",
   number: "", neighborhood: "", city: "", state: "", notes: "",
 };
 
 const IC =
-  "w-full rounded-DEFAULT border border-outline-variant bg-surface-container-lowest px-3 py-2 font-body-md text-body-md text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-surface-container-high transition-colors";
+  "w-full rounded-DEFAULT border bg-surface-container-lowest px-3 py-2 font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 transition-colors";
+const IC_NORMAL = `${IC} border-outline-variant focus:border-primary focus:ring-surface-container-high`;
+const IC_ERROR = `${IC} border-error focus:border-error focus:ring-error-container bg-error-container`;
 const LB =
   "font-label-mono text-label-mono text-on-surface-variant uppercase mb-1 block";
+const ERR = "font-body-sm text-body-sm text-error mt-1";
+
+/* ---------- Masks ---------- */
+function onlyDigits(v: string): string {
+  return v.replace(/\D/g, "");
+}
+
+function maskPhone(value: string): string {
+  const d = onlyDigits(value).slice(0, 11);
+  if (d.length === 0) return "";
+  if (d.length <= 2) return `(${d}`;
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+
+function maskCep(value: string): string {
+  const d = onlyDigits(value).slice(0, 8);
+  if (d.length <= 5) return d;
+  return `${d.slice(0, 5)}-${d.slice(5)}`;
+}
+
+function maskState(value: string): string {
+  return value.replace(/[^a-zA-Z]/g, "").toUpperCase().slice(0, 2);
+}
+
+/* ---------- Validators ---------- */
+function validate(form: ClientInput): FormErrors {
+  const errors: FormErrors = {};
+
+  if (!form.name.trim()) {
+    errors.name = "Nome é obrigatório.";
+  } else if (form.name.trim().length < 3) {
+    errors.name = "Nome deve ter pelo menos 3 caracteres.";
+  }
+
+  if (!form.email.trim()) {
+    errors.email = "E-mail é obrigatório.";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+    errors.email = "Informe um e-mail válido (ex.: nome@dominio.com).";
+  }
+
+  if (form.phone && onlyDigits(form.phone).length < 10) {
+    errors.phone = "Telefone deve ter DDD + número (mín. 10 dígitos).";
+  }
+
+  if (form.cep && onlyDigits(form.cep).length !== 8) {
+    errors.cep = "CEP deve ter 8 dígitos.";
+  }
+
+  if (form.state && form.state.length !== 2) {
+    errors.state = "Use a sigla com 2 letras (ex.: SP).";
+  }
+
+  return errors;
+}
 
 function Field({
-  label, value, onChange, type = "text", required, placeholder, span = "",
+  label, value, onChange, type = "text", required, placeholder,
+  span = "", error, disabled, maxLength,
 }: {
   label: string;
   value: string;
@@ -34,18 +95,24 @@ function Field({
   required?: boolean;
   placeholder?: string;
   span?: string;
+  error?: string;
+  disabled?: boolean;
+  maxLength?: number;
 }) {
   return (
     <div className={span}>
       <label className={LB}>{label}{required ? " *" : ""}</label>
       <input
         type={type}
-        className={IC}
+        className={error ? IC_ERROR : IC_NORMAL}
         value={value}
         required={required}
         placeholder={placeholder}
+        maxLength={maxLength}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
       />
+      {error && <p className={ERR}>{error}</p>}
     </div>
   );
 }
@@ -63,9 +130,12 @@ export function Clients({ activePage, onNavigate }: ClientsProps) {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [form, setForm] = useState<ClientInput>(EMPTY);
+  const [errors, setErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isNew, setIsNew] = useState(false);
+
+  const formDisabled = !isNew && !selectedId;
 
   async function load() {
     setLoading(true);
@@ -88,6 +158,12 @@ export function Clients({ activePage, onNavigate }: ClientsProps) {
 
   function setF(key: keyof ClientInput, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
+    setErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   }
 
   function fill(c: Client) {
@@ -102,6 +178,7 @@ export function Clients({ activePage, onNavigate }: ClientsProps) {
   function handleRowClick(c: Client) {
     setSelectedId(c.id);
     setIsNew(false);
+    setErrors({});
     setForm(EMPTY);
     fill(c);
   }
@@ -110,17 +187,28 @@ export function Clients({ activePage, onNavigate }: ClientsProps) {
     setSelectedId(null);
     setIsNew(true);
     setForm(EMPTY);
+    setErrors({});
   }
 
   function resetForm() {
     setSelectedId(null);
     setIsNew(false);
     setForm(EMPTY);
+    setErrors({});
     setFeedback(null);
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (formDisabled) return;
+
+    const nextErrors = validate(form);
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      setFeedback("Corrija os campos destacados antes de salvar.");
+      return;
+    }
+
     setSaving(true);
     setFeedback(null);
     try {
@@ -292,11 +380,11 @@ export function Clients({ activePage, onNavigate }: ClientsProps) {
               Editor de Cliente
             </h2>
             <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-              {isNew
-                ? "Preencha os dados do novo cliente."
-                : selectedId
-                  ? "Preencha ou atualize os dados do cliente selecionado."
-                  : "Selecione um cliente na tabela ou clique em Novo Cliente."}
+              {formDisabled
+                ? "Selecione um cliente na tabela ou clique em Novo Cliente para editar."
+                : isNew
+                  ? "Preencha os dados do novo cliente. Campos com * são obrigatórios."
+                  : "Preencha ou atualize os dados do cliente selecionado."}
             </p>
           </div>
 
@@ -307,10 +395,26 @@ export function Clients({ activePage, onNavigate }: ClientsProps) {
                 <h3 className="font-body-md text-body-md font-semibold text-primary mb-2">
                   Dados do Cliente
                 </h3>
-                <Field label="Nome Completo" value={form.name} onChange={(v) => setF("name", v)} required />
-                <Field label="E-mail" type="email" value={form.email} onChange={(v) => setF("email", v)} required />
-                <Field label="Telefone (WhatsApp)" value={form.phone ?? ""} onChange={(v) => setF("phone", v)} />
-                <Field label="Empresa" value={form.company ?? ""} onChange={(v) => setF("company", v)} />
+                <Field
+                  label="Nome Completo" value={form.name} required
+                  disabled={formDisabled} error={errors.name}
+                  onChange={(v) => setF("name", v)}
+                />
+                <Field
+                  label="E-mail" type="email" value={form.email} required
+                  disabled={formDisabled} error={errors.email}
+                  onChange={(v) => setF("email", v)}
+                />
+                <Field
+                  label="Telefone (WhatsApp)" value={form.phone ?? ""} placeholder="(11) 98765-4321"
+                  disabled={formDisabled} error={errors.phone}
+                  onChange={(v) => setF("phone", maskPhone(v))}
+                />
+                <Field
+                  label="Empresa" value={form.company ?? ""}
+                  disabled={formDisabled}
+                  onChange={(v) => setF("company", v)}
+                />
               </div>
 
               {/* Card: Endereço */}
@@ -319,20 +423,39 @@ export function Clients({ activePage, onNavigate }: ClientsProps) {
                   Endereço
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-sm">
-                  <Field label="CEP" value={form.cep ?? ""} onChange={(v) => setF("cep", v)} />
-                  <Field label="Rua" value={form.street ?? ""} onChange={(v) => setF("street", v)} span="sm:col-span-2" />
+                  <Field
+                    label="CEP" value={form.cep ?? ""} placeholder="18010-000"
+                    disabled={formDisabled} error={errors.cep}
+                    onChange={(v) => setF("cep", maskCep(v))}
+                  />
+                  <Field
+                    label="Rua" value={form.street ?? ""} span="sm:col-span-2"
+                    disabled={formDisabled}
+                    onChange={(v) => setF("street", v)}
+                  />
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-sm">
-                  <Field label="Número" value={form.number ?? ""} onChange={(v) => setF("number", v)} />
-                  <Field label="Bairro" value={form.neighborhood ?? ""} onChange={(v) => setF("neighborhood", v)} span="sm:col-span-2" />
+                  <Field
+                    label="Número" value={form.number ?? ""}
+                    disabled={formDisabled}
+                    onChange={(v) => setF("number", v)}
+                  />
+                  <Field
+                    label="Bairro" value={form.neighborhood ?? ""} span="sm:col-span-2"
+                    disabled={formDisabled}
+                    onChange={(v) => setF("neighborhood", v)}
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-sm">
-                  <Field label="Cidade" value={form.city ?? ""} onChange={(v) => setF("city", v)} />
                   <Field
-                    label="Estado"
-                    value={form.state ?? ""}
-                    onChange={(v) => setF("state", v.toUpperCase())}
-                    placeholder="SP"
+                    label="Cidade" value={form.city ?? ""}
+                    disabled={formDisabled}
+                    onChange={(v) => setF("city", v)}
+                  />
+                  <Field
+                    label="Estado" value={form.state ?? ""} placeholder="SP"
+                    maxLength={2} disabled={formDisabled} error={errors.state}
+                    onChange={(v) => setF("state", maskState(v))}
                     span=""
                   />
                 </div>
@@ -346,8 +469,9 @@ export function Clients({ activePage, onNavigate }: ClientsProps) {
                 <div className="flex-1 flex flex-col">
                   <label className={LB}>Notas internas sobre este cliente</label>
                   <textarea
-                    className={`${IC} flex-1 min-h-[120px] resize-none`}
+                    className={`${IC_NORMAL} flex-1 min-h-[120px] resize-none`}
                     placeholder="Adicione notas aqui..."
+                    disabled={formDisabled}
                     value={form.notes ?? ""}
                     onChange={(e) => setF("notes", e.target.value)}
                   />
@@ -356,7 +480,13 @@ export function Clients({ activePage, onNavigate }: ClientsProps) {
             </div>
 
             {feedback && (
-              <div className="bg-surface-container-high border border-outline-variant text-on-surface rounded-lg px-md py-sm font-body-sm text-body-sm">
+              <div
+                className={`rounded-lg px-md py-sm font-body-sm text-body-sm ${
+                  Object.keys(errors).length > 0 && !feedback.includes("sucesso") && !feedback.includes("excluído")
+                    ? "bg-error-container border border-error text-on-error-container"
+                    : "bg-surface-container-high border border-outline-variant text-on-surface"
+                }`}
+              >
                 {feedback}
               </div>
             )}
@@ -381,8 +511,8 @@ export function Clients({ activePage, onNavigate }: ClientsProps) {
               </button>
               <button
                 type="submit"
-                disabled={saving}
-                className="bg-primary text-on-primary font-body-md text-body-md px-4 py-2 rounded-DEFAULT hover:opacity-90 transition-opacity font-medium shadow-sm disabled:opacity-50"
+                disabled={saving || formDisabled}
+                className="bg-primary text-on-primary font-body-md text-body-md px-4 py-2 rounded-DEFAULT hover:opacity-90 transition-opacity font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="flex items-center gap-xs">
                   <Icon name="save" size={18} />
