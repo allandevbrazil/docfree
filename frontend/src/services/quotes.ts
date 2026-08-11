@@ -47,7 +47,28 @@ export async function fetchQuotes(
     );
   }
 
-  return (await response.json()) as QuoteListResult;
+  const body = (await response.json()) as {
+    success: boolean;
+    data: Quote[];
+    meta: {
+      total: number;
+      page: number;
+      pageSize: number;
+      totalPages: number;
+      summary: string;
+    };
+  };
+
+  return {
+    data: body.data,
+    pagination: {
+      page: body.meta.page,
+      pageSize: body.meta.pageSize,
+      total: body.meta.total,
+      totalPages: body.meta.totalPages,
+      summary: body.meta.summary,
+    },
+  };
 }
 
 /** GET /api/quotes/{id} */
@@ -62,7 +83,8 @@ export async function fetchQuoteById(id: string): Promise<Quote> {
     );
   }
 
-  return (await response.json()) as Quote;
+  const body = (await response.json()) as { success: boolean; data: Quote };
+  return body.data;
 }
 
 /** POST /api/quotes */
@@ -79,7 +101,8 @@ export async function createQuote(input: QuoteInput): Promise<Quote> {
     );
   }
 
-  return (await response.json()) as Quote;
+  const body = (await response.json()) as { success: boolean; data: Quote };
+  return body.data;
 }
 
 /** PUT /api/quotes/{id} */
@@ -99,7 +122,8 @@ export async function updateQuote(
     );
   }
 
-  return (await response.json()) as Quote;
+  const body = (await response.json()) as { success: boolean; data: Quote };
+  return body.data;
 }
 
 /** DELETE /api/quotes/{id} */
