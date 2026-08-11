@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-seed/
+*.tsbuildinfo
+
+# Environment — NUNCA versionar secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Docker volumes
+postgres_data/
+
+# Arquivos temporários de diagnóstico
+neon_*.json
+*.tmp
