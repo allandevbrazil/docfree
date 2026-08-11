@@ -7,7 +7,7 @@ O projeto é um **monorepo** composto por:
 | Pasta      | Descrição                                                                 |
 | ---------- | ------------------------------------------------------------------------- |
 | `backend/` | **BFF (Backend For Frontend)** — API REST em Node.js/TypeScript com Express, Prisma e PostgreSQL. Documentação interativa via Swagger. |
-| `frontend/`| Aplicação frontend (em desenvolvimento — placeholder).                   |
+| `frontend/`| **Dashboard (SPA)** — React + Vite + TypeScript + Tailwind CSS consumindo o BFF. |
 
 ---
 
@@ -85,6 +85,7 @@ backend/src/
 | Documentação  | Swagger (OpenAPI 3.0)                  |
 | Infraestrutura| Docker + docker-compose                |
 | Deploy        | Render (Docker runtime)                |
+| Frontend      | React 18 + Vite 5 + TypeScript + Tailwind CSS |
 
 ---
 
@@ -154,6 +155,20 @@ npm run dev
 
 > ⚠️ O `RUN_SEED=true` deve ser usado **somente** em ambiente local/dev. Em produção, mantenha `RUN_SEED=false` para não sobrescrever dados reais.
 
+### Frontend (Dashboard SPA)
+
+```bash
+cd frontend
+
+# 1. Instalar dependências
+npm install
+
+# 2. Iniciar o servidor de desenvolvimento (porta 5173)
+npm run dev
+```
+
+O Vite já possui **proxy configurado**: requisições para `/api`, `/api-docs` e `/health` são encaminhadas para `http://localhost:3333`. Basta o backend estar rodando.
+
 ---
 
 ## ⚙️ Como Configurar
@@ -168,11 +183,27 @@ As variáveis de ambiente são definidas no arquivo `.env` (criado a partir de `
 | `RUN_SEED`     | Executa o seed de dados falsos (`true`/`false`)      | `false`                                                              |
 | `DATABASE_URL` | Connection string do PostgreSQL (usada pelo Prisma)  | `postgresql://docpratico:docpratico@localhost:5432/docpratico?schema=public` |
 
+#### Frontend (`frontend/.env`)
+
+| Variável           | Descrição                                                                 | Exemplo                      |
+| ------------------ | ------------------------------------------------------------------------- | ---------------------------- |
+| `VITE_API_BASE_URL`| URL da API. Vazio = usa o proxy do Vite (ambiente local). Em produção, aponte para o backend publicado. | `https://docfree-api.onrender.com` |
+
 > 🔒 **Segurança:** Nunca commite o arquivo `.env` nem valores reais de secrets. O `.gitignore` já protege `.env`, `.env.*`, `*.pem` e `*.key`. Para produção (ex.: Render), defina as variáveis no painel do provedor — nunca no código-fonte.
 
 ---
 
 ## 📖 Como Usar
+
+### Dashboard (Interface Web)
+
+Com o backend rodando na porta `3333` e o frontend na `5173`, acesse:
+
+```
+http://localhost:5173
+```
+
+A tela carrega KPIs (orçamentos aprovados, aguardando resposta e taxa de conversão) e o histórico recente de orçamentos, tudo consumido do endpoint BFF `GET /api/dashboard`.
 
 ### Documentação Interativa (Swagger)
 
@@ -292,7 +323,7 @@ Este projeto segue uma política rigorosa de segurança:
 - [x] Swagger (OpenAPI 3.0)
 - [x] Docker + docker-compose
 - [x] Deploy configurado para Render (Docker runtime)
-- [ ] Frontend (em desenvolvimento)
+- [x] Frontend Dashboard (React + Vite + Tailwind) consumindo o BFF
 - [ ] Autenticação (JWT)
 - [ ] Testes unitários e de integração
 - [ ] CI/CD pipeline
