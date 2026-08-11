@@ -1,13 +1,15 @@
 # DocPrático
 
-Sistema **DocPrático** — gerenciador de orçamentos e clientes para profissionais autônomos e pequenas empresas (marceneiros, montadores, reformas, etc.).
+> 🛠️ Gerenciador de orçamentos e clientes para profissionais autônomos e pequenas empresas (marceneiros, montadores, reformas, etc.)
+
+O **DocPrático** é um sistema completo para criação, envio e acompanhamento de orçamentos. Ele permite cadastrar clientes, montar orçamentos com itens e descontos, acompanhar o status (aprovado, pendente, rejeitado) e visualizar KPIs de desempenho em um dashboard.
 
 O projeto é um **monorepo** composto por:
 
-| Pasta      | Descrição                                                                 |
-| ---------- | ------------------------------------------------------------------------- |
-| `backend/` | **BFF (Backend For Frontend)** — API REST em Node.js/TypeScript com Express, Prisma e PostgreSQL. Documentação interativa via Swagger. |
-| `frontend/`| **Dashboard (SPA)** — React + Vite + TypeScript + Tailwind CSS consumindo o BFF. |
+| Pasta       | Descrição                                                                 |
+| ----------- | ------------------------------------------------------------------------- |
+| `backend/`  | **BFF (Backend For Frontend)** — API REST em Node.js/TypeScript com Express, Prisma e PostgreSQL. Documentação interativa via Swagger. |
+| `frontend/` | **Dashboard (SPA)** — React + Vite + TypeScript + Tailwind CSS consumindo o BFF. |
 
 ---
 
@@ -225,6 +227,40 @@ A interface **Swagger UI** permite:
 - Visualizar schemas, parâmetros e exemplos de resposta
 - **Executar requisições** diretamente pelo navegador (botão **Try it out**)
 
+#### Passo a passo: criar um orçamento pelo Swagger
+
+1. **Abra o Swagger** em `http://localhost:3333/api-docs`
+2. **Expanda o grupo `Quotes`** e clique em `POST /api/quotes`
+3. Clique no botão **Try it out**
+4. No corpo da requisição, preencha com um exemplo:
+
+```json
+{
+  "clientId": "uuid-do-cliente",
+  "projectName": "Armários Cozinha",
+  "items": [
+    {
+      "description": "Armário planejado 2m",
+      "quantity": 1,
+      "unitPrice": 4500
+    },
+    {
+      "description": "Bancada de granito",
+      "quantity": 1,
+      "unitPrice": 1200
+    }
+  ],
+  "discount": 0,
+  "discountType": "FIXED",
+  "termsAndConditions": "Pagamento em até 30 dias",
+  "status": "PENDING"
+}
+```
+
+> 💡 Para obter um `clientId` válido, primeiro execute `GET /api/clients` (ou crie um cliente com `POST /api/clients`) e copie o `id` da resposta.
+
+5. Clique em **Execute** — a resposta `201 Created` retorna o orçamento criado com `id`, `subtotal`, `totalValue` e `items`.
+
 ### Endpoints Disponíveis
 
 | Método | Rota                  | Descrição                                              |
@@ -243,10 +279,11 @@ A interface **Swagger UI** permite:
 | PUT    | `/api/quotes/{id}`    | Atualiza orçamento                                     |
 | DELETE | `/api/quotes/{id}`    | Remove orçamento                                       |
 
-### Exemplo: Dashboard
+### Exemplos com `curl`
+
+#### Dashboard (KPIs + últimos orçamentos)
 
 ```bash
-# KPIs + últimos orçamentos (com filtros e paginação)
 curl "http://localhost:3333/api/dashboard?page=1&pageSize=10&status=APPROVED"
 ```
 
@@ -290,6 +327,23 @@ Resposta (padrão BFF — dados já formatados):
     }
   }
 }
+```
+
+#### Criar um orçamento
+
+```bash
+curl -X POST "http://localhost:3333/api/quotes" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientId": "uuid-do-cliente",
+    "projectName": "Armários Cozinha",
+    "items": [
+      { "description": "Armário planejado 2m", "quantity": 1, "unitPrice": 4500 }
+    ],
+    "discount": 0,
+    "discountType": "FIXED",
+    "termsAndConditions": "Pagamento em até 30 dias"
+  }'
 ```
 
 > 📚 A documentação detalhada do backend (modelagem do banco, decisões técnicas, próximos passos) está em [`backend/README.md`](backend/README.md).
