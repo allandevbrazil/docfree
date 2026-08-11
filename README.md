@@ -210,7 +210,7 @@ O frontend é uma **SPA (Single Page Application)** com navegação entre as pá
 | Página       | Descrição                                                                 |
 | ------------ | ------------------------------------------------------------------------- |
 | **Dashboard**| KPIs (orçamentos aprovados, aguardando resposta e taxa de conversão) + histórico recente de orçamentos, consumidos do endpoint BFF `GET /api/dashboard`. |
-| **Orçamentos**| Lista de orçamentos com filtros, paginação e ações (baixar PDF, copiar link, editar). *(em desenvolvimento)* |
+| **Orçamentos**| Lista de orçamentos com busca, filtro por status, paginação e editor completo (itens, desconto fixo/percentual, termos, status). |
 | **Clientes** | CRUD completo de clientes com busca, paginação, máscaras de telefone/CEP e validação de formulário. |
 
 ### Documentação Interativa (Swagger)
@@ -394,7 +394,7 @@ Este projeto segue uma política rigorosa de segurança:
 - [x] CRUD de Clientes (busca, paginação, validação)
 - [x] Navegação entre páginas (Dashboard, Orçamentos, Clientes)
 - [x] Design System com Tailwind CSS (tokens de cor, tipografia, espaçamento)
-- [ ] Página de Orçamentos (em desenvolvimento)
+- [x] Página de Orçamentos (lista, busca, filtro por status, editor completo com itens e desconto)
 - [ ] Autenticação (JWT)
 - [ ] Testes unitários e de integração
 - [ ] CI/CD pipeline

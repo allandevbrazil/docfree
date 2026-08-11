@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Dashboard } from "./pages/Dashboard";
 import { Clients } from "./pages/Clients";
+import { Quotes } from "./pages/Quotes";
 import type { PageKey } from "./components/Header";
 
 export default function App() {
@@ -8,6 +9,10 @@ export default function App() {
 
   if (page === "clients") {
     return <Clients activePage={page} onNavigate={setPage} />;
+  }
+
+  if (page === "quotes") {
+    return <Quotes activePage={page} onNavigate={setPage} />;
   }
 
   return <Dashboard activePage={page} onNavigate={setPage} />;
