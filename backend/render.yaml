@@ -1,22 +1,29 @@
 # Render Blueprint for DocPrático API
 # Deploys the backend from the GitHub repo allandevbrazil/docfree (rootDir: backend)
+# IMPORTANT: This service uses DOCKER runtime. Do NOT set buildCommand,
+# startCommand, or dockerCommand in the Render Dashboard — the multi-stage
+# Dockerfile handles install, Prisma generate, TypeScript build, and runtime
+# migrations + server start automatically.
 
 services:
   - type: web
     name: docpratico-api
-    runtime: node
+    runtime: docker
     plan: free
     rootDir: backend
     region: oregon
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /health
-    buildCommand: npm ci && npx prisma generate && npm run build
-    startCommand: npx prisma migrate deploy && node dist/server.js
+    # No buildCommand / startCommand / preDeployCommand — the Dockerfile CMD
+    # runs: npx prisma migrate deploy && (seed only if RUN_SEED=true) && node dist/server.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3000
+        value: 3333
       - key: API_PREFIX
         value: /api/v1
+      - key: RUN_SEED
+        value: "false"
       - key: DATABASE_URL
         sync: false
