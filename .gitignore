@@ -17,6 +17,10 @@ dist-seed/
 *.log
 npm-debug.log*
 
+# Temporary API search files
+gh_search.json
+render_*.json
+
 # OS
 .DS_Store
 Thumbs.db
