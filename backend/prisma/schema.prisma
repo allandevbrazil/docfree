@@ -1,0 +1,102 @@
+// DocPrático - Prisma Schema
+// Database: PostgreSQL
+// Models: Client, Quote, QuoteItem
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Client Entity
+// ============================================
+model Client {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  email        String   @unique
+  phone        String?
+  company      String?
+  // Address fields
+  cep          String?
+  street       String?
+  number       String?
+  neighborhood String?
+  city         String?
+  state        String?
+  // Internal notes
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  quotes Quote[]
+
+  @@index([name])
+  @@index([email])
+  @@index([city])
+  @@map("clients")
+}
+
+// ============================================
+// Quote (Budget/Orçamento) Entity
+// ============================================
+model Quote {
+  id                 String       @id @default(uuid()) @db.Uuid
+  clientId           String       @db.Uuid
+  projectName        String
+  subtotal           Decimal      @default(0) @db.Decimal(12, 2)
+  discount           Decimal      @default(0) @db.Decimal(12, 2)
+  discountType       DiscountType @default(FIXED)
+  totalValue         Decimal      @db.Decimal(12, 2)
+  status             QuoteStatus  @default(PENDING)
+  termsAndConditions String?
+  publicLink         String?      @unique
+  sentAt             DateTime     @default(now())
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  client Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  items  QuoteItem[]
+
+  @@index([clientId])
+  @@index([status])
+  @@index([sentAt])
+  @@index([createdAt])
+  @@map("quotes")
+}
+
+// ============================================
+// QuoteItem (Line item of a Quote)
+// ============================================
+model QuoteItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  quoteId     String   @db.Uuid
+  description String
+  quantity    Decimal  @db.Decimal(10, 2)
+  unitPrice   Decimal  @db.Decimal(12, 2)
+  totalPrice  Decimal  @db.Decimal(12, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+  @@map("quote_items")
+}
+
+// ============================================
+// Enums
+// ============================================
+enum QuoteStatus {
+  APPROVED
+  PENDING
+  REJECTED
+}
+
+enum DiscountType {
+  FIXED
+  PERCENTAGE
+}

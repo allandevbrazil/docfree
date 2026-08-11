@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: docpratico-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: docpratico
+      POSTGRES_PASSWORD: docpratico
+      POSTGRES_DB: docpratico
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docpratico -d docpratico"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: docpratico-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3333
+      RUN_SEED: "true"
+      DATABASE_URL: postgresql://docpratico:docpratico@postgres:5432/docpratico?schema=public
+    ports:
+      - "3333:3333"
+
+volumes:
+  postgres_data:
