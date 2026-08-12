@@ -28,6 +28,7 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+.clinerules
 
 # Docker volumes
 postgres_data/
