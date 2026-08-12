@@ -199,6 +199,14 @@ As variáveis de ambiente são definidas no arquivo `.env` (criado a partir de `
 
 ### Dashboard (Interface Web)
 
+#### Ambiente de produção (demo online)
+
+Para testar a versão publicada, acesse:
+
+```
+https://frontend-chi-six-23.vercel.app
+```
+
 Com o backend rodando na porta `3333` e o frontend na `5173`, acesse:
 
 ```
