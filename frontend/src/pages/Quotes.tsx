@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import type { Quote, QuoteInput, QuoteItemInput, QuoteStatus } from "../types/quote";
 import {
   createQuote,
@@ -11,6 +11,7 @@ import { fetchClients } from "../services/clients";
 import { Header, type PageKey } from "../components/Header";
 import { Icon } from "../components/Icon";
 import { StatusBadge } from "../components/StatusBadge";
+import { downloadQuotePdf } from "../services/pdf";
 
 interface QuotesProps {
   activePage: PageKey;
@@ -183,9 +184,9 @@ export function Quotes({ activePage, onNavigate }: QuotesProps) {
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const formDisabled = !isNew && !selectedId;
-  const editorRef = useRef<HTMLElement | null>(null);
 
   async function load() {
     setLoading(true);
@@ -194,8 +195,7 @@ export function Quotes({ activePage, onNavigate }: QuotesProps) {
       const result = await fetchQuotes({
         page,
         pageSize: 10,
-        clientName: search,
-        projectName: search,
+        search,
         status: statusFilter || undefined,
       });
       setQuotes(result.data);
@@ -289,7 +289,6 @@ export function Quotes({ activePage, onNavigate }: QuotesProps) {
     setErrors({});
     setForm(EMPTY);
     fill(q);
-    editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function handleNew() {
@@ -334,6 +333,18 @@ export function Quotes({ activePage, onNavigate }: QuotesProps) {
       setFeedback(err instanceof Error ? err.message : "Erro ao salvar orçamento");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDownloadPdf(quote: Quote) {
+    if (downloadingId) return;
+    setDownloadingId(quote.id);
+    try {
+      await downloadQuotePdf(quote);
+    } catch (err) {
+      setFeedback(err instanceof Error ? err.message : "Erro ao gerar PDF do orçamento.");
+    } finally {
+      setDownloadingId(null);
     }
   }
 
@@ -433,18 +444,19 @@ export function Quotes({ activePage, onNavigate }: QuotesProps) {
                       <th className={th}>Projeto</th>
                       <th className={th}>Valor Total</th>
                       <th className={th}>Status</th>
+                      <th className={`${th} text-right`}>Ações</th>
                     </tr>
                   </thead>
                   <tbody className="font-body-md text-body-md text-on-surface divide-y divide-outline-variant">
                     {loading && quotes.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="py-16 text-center text-secondary">
+                        <td colSpan={6} className="py-16 text-center text-secondary">
                           Carregando orçamentos…
                         </td>
                       </tr>
                     ) : quotes.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="py-16 text-center text-secondary">
+                        <td colSpan={6} className="py-16 text-center text-secondary">
                           Nenhum orçamento encontrado.
                         </td>
                       </tr>
@@ -469,6 +481,20 @@ export function Quotes({ activePage, onNavigate }: QuotesProps) {
                           </td>
                           <td className="py-3 px-md">
                             <StatusBadge status={quote.status} />
+                          </td>
+                          <td className="py-3 px-md text-right">
+                            <button
+                              type="button"
+                              title="Baixar PDF"
+                              disabled={downloadingId === quote.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void handleDownloadPdf(quote);
+                              }}
+                              className="p-1 text-secondary hover:text-primary rounded-DEFAULT hover:bg-surface-container transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Icon name="download" size={18} />
+                            </button>
                           </td>
                         </tr>
                       ))
@@ -509,7 +535,7 @@ export function Quotes({ activePage, onNavigate }: QuotesProps) {
         <div className="border-t border-dashed border-outline-variant w-full" />
 
         {/* ===== Lower Half: Editor ===== */}
-        <section ref={editorRef} className="flex flex-col gap-lg pb-xl scroll-mt-6">
+        <section className="flex flex-col gap-lg pb-xl">
           <div>
             <h2 className="font-headline-md text-headline-md font-semibold text-primary">
               Editor de Orçamento
@@ -758,10 +784,7 @@ export function Quotes({ activePage, onNavigate }: QuotesProps) {
                 disabled={saving || formDisabled}
                 className="bg-primary text-on-primary font-body-md text-body-md px-4 py-2 rounded-DEFAULT hover:opacity-90 transition-opacity font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span className="flex items-center gap-xs">
-                  <Icon name="save" size={18} />
-                  {saving ? "Salvando…" : "Salvar Orçamento"}
-                </span>
+                {saving ? "Salvando…" : isNew ? "Criar Orçamento" : "Salvar Alterações"}
               </button>
             </div>
           </form>

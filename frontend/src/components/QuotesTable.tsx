@@ -1,6 +1,9 @@
+import { useState } from "react";
 import type { RecentQuoteItemDTO, RecentQuotesPaginationDTO } from "../types/dashboard";
 import { StatusBadge } from "./StatusBadge";
 import { Icon } from "./Icon";
+import { fetchQuoteById } from "../services/quotes";
+import { downloadQuotePdf } from "../services/pdf";
 
 interface QuotesTableProps {
   data: RecentQuoteItemDTO[];
@@ -16,6 +19,21 @@ export function QuotesTable({ data, pagination, onPageChange }: QuotesTableProps
   const { page, totalPages } = pagination;
   const hasPrevious = page > 1;
   const hasNext = page < totalPages;
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  async function handleDownloadPdf(quoteId: string) {
+    if (downloadingId) return;
+    setDownloadingId(quoteId);
+    try {
+      const quote = await fetchQuoteById(quoteId);
+      await downloadQuotePdf(quote);
+    } catch (err) {
+      console.error("Erro ao gerar PDF:", err);
+      alert(err instanceof Error ? err.message : "Erro ao gerar PDF do orçamento.");
+    } finally {
+      setDownloadingId(null);
+    }
+  }
 
   return (
     <div className="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
@@ -72,9 +90,8 @@ export function QuotesTable({ data, pagination, onPageChange }: QuotesTableProps
                       type="button"
                       className={ACTION_BUTTON_CLASS}
                       title="Baixar PDF"
-                      onClick={() => {
-                        window.open(`/api/quotes/${quote.id}/pdf`, "_blank");
-                      }}
+                      disabled={downloadingId === quote.id}
+                      onClick={() => void handleDownloadPdf(quote.id)}
                     >
                       <Icon name="download" size={18} />
                     </button>

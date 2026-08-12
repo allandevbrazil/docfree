@@ -57,14 +57,7 @@ export function Header({ activePage, onNavigate }: HeaderProps) {
 
         {/* Actions */}
         <div className="flex items-center gap-sm">
-          <button
-            type="button"
-            onClick={() => onNavigate("quotes")}
-            className="bg-primary text-on-primary font-body-md text-body-md px-4 py-2 rounded-DEFAULT hover:opacity-90 transition-opacity font-medium shadow-sm flex items-center gap-xs text-white"
-          >
-            <Icon name="add" size={18} />
-            NOVO ORÇAMENTO
-          </button>
+          
         </div>
       </div>
     </header>

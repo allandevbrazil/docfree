@@ -76,6 +76,7 @@ export class QuoteController {
     );
 
     const status = this.parseStatus(req.query.status as string | undefined);
+    const search = req.query.search as string | undefined;
     const clientName = req.query.clientName as string | undefined;
     const projectName = req.query.projectName as string | undefined;
 
@@ -83,6 +84,7 @@ export class QuoteController {
       page,
       pageSize,
       status,
+      search,
       clientName,
       projectName,
     });

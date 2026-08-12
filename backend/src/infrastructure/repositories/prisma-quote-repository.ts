@@ -24,10 +24,22 @@ export class PrismaQuoteRepository implements QuoteRepository {
   async findRecent(
     params: FindRecentQuotesParams
   ): Promise<FindRecentQuotesResult> {
-    const { page, pageSize, status, clientName, projectName } = params;
+    const { page, pageSize, status, search, clientName, projectName } = params;
 
     const where: Prisma.QuoteWhereInput = {
       ...(status ? { status: this.toPrismaStatus(status) } : {}),
+      ...(search
+        ? {
+            OR: [
+              { projectName: { contains: search, mode: "insensitive" } },
+              {
+                client: {
+                  name: { contains: search, mode: "insensitive" },
+                },
+              },
+            ],
+          }
+        : {}),
       ...(clientName
         ? {
             client: {

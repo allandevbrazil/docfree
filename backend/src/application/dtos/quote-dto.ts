@@ -66,6 +66,7 @@ export interface ListQuotesParams {
   page: number;
   pageSize: number;
   status?: QuoteStatus;
+  search?: string;
   clientName?: string;
   projectName?: string;
 }

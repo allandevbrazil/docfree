@@ -13,6 +13,8 @@ function buildQuery(params: QuoteListParams): string {
   if (params.pageSize !== undefined)
     query.set("pageSize", String(params.pageSize));
   if (params.status !== undefined) query.set("status", params.status);
+  if (params.search !== undefined && params.search.trim() !== "")
+    query.set("search", params.search.trim());
   if (params.clientName !== undefined && params.clientName.trim() !== "")
     query.set("clientName", params.clientName.trim());
   if (params.projectName !== undefined && params.projectName.trim() !== "")

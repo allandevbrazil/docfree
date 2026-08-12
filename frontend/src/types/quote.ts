@@ -53,6 +53,7 @@ export interface QuoteListParams {
   page?: number;
   pageSize?: number;
   status?: QuoteStatus;
+  search?: string;
   clientName?: string;
   projectName?: string;
 }

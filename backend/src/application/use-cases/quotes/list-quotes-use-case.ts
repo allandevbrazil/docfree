@@ -19,6 +19,7 @@ export class ListQuotesUseCase {
       page,
       pageSize,
       status: params.status,
+      search: params.search,
       clientName: params.clientName,
       projectName: params.projectName,
     });
