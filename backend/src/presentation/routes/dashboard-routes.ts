@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { DashboardController } from "../controllers/dashboard-controller";
 import { Container } from "../../shared/container";
+import { asyncHandler } from "../middlewares/async-handler";
 
 /**
  * Dashboard Routes
@@ -148,8 +149,6 @@ const controller = new DashboardController(Container.getDashboardService());
  *       500:
  *         description: Internal server error
  */
-router.get("/", (req, res) => {
-  void controller.getDashboard(req, res);
-});
+router.get("/", asyncHandler((req, res) => controller.getDashboard(req, res)));
 
 export default router;

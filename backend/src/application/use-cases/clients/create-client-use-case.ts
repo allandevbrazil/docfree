@@ -1,5 +1,6 @@
 import { ClientRepository } from "../../../domain/repositories/client-repository";
 import { CreateClientInput, ClientResponse } from "../../dtos/client-dto";
+import { AppError } from "../../../presentation/middlewares/error-handler";
 
 /**
  * Create Client Use Case
@@ -13,17 +14,17 @@ export class CreateClientUseCase {
   async execute(input: CreateClientInput): Promise<ClientResponse> {
     // Business rule: email is required and must be unique
     if (!input.email || !input.email.trim()) {
-      throw new Error("Email is required");
+      throw new AppError(400, "Email is required");
     }
 
     const existing = await this.clientRepository.findByEmail(input.email.trim().toLowerCase());
     if (existing) {
-      throw new Error("A client with this email already exists");
+      throw new AppError(409, "A client with this email already exists");
     }
 
     // Business rule: name is required
     if (!input.name || !input.name.trim()) {
-      throw new Error("Name is required");
+      throw new AppError(400, "Name is required");
     }
 
     const client = await this.clientRepository.create({

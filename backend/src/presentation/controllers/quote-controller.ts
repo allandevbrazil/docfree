@@ -9,6 +9,7 @@ import {
   CreateQuoteInput,
   UpdateQuoteInput,
 } from "../../application/dtos/quote-dto";
+import { assertUuid, parseOptionalIsoDate } from "../middlewares/request-validation";
 
 /**
  * Quote Controller
@@ -31,7 +32,10 @@ export class QuoteController {
    * Creates a new quote.
    */
   async create(req: Request, res: Response): Promise<void> {
-    const dto: CreateQuoteInput = req.body;
+    const dto: CreateQuoteInput = {
+      ...req.body,
+      sentAt: parseOptionalIsoDate(req.body.sentAt)?.toISOString(),
+    };
 
     const quote = await this.createQuoteUseCase.execute(dto);
 
@@ -47,6 +51,7 @@ export class QuoteController {
    */
   async getById(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
+    assertUuid(id, "id");
 
     const quote = await this.getQuoteUseCase.execute(id);
 
@@ -108,7 +113,11 @@ export class QuoteController {
    */
   async update(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
-    const dto: UpdateQuoteInput = req.body;
+    assertUuid(id, "id");
+    const dto: UpdateQuoteInput = {
+      ...req.body,
+      sentAt: parseOptionalIsoDate(req.body.sentAt)?.toISOString(),
+    };
 
     const quote = await this.updateQuoteUseCase.execute(id, dto);
 
@@ -132,6 +141,7 @@ export class QuoteController {
    */
   async delete(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
+    assertUuid(id, "id");
 
     const deleted = await this.deleteQuoteUseCase.execute(id);
 

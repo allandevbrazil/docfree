@@ -4,6 +4,7 @@ import { GetClientUseCase } from "../../application/use-cases/clients/get-client
 import { ListClientsUseCase } from "../../application/use-cases/clients/list-clients-use-case";
 import { UpdateClientUseCase } from "../../application/use-cases/clients/update-client-use-case";
 import { DeleteClientUseCase } from "../../application/use-cases/clients/delete-client-use-case";
+import { assertUuid } from "../middlewares/request-validation";
 
 /**
  * Client Controller
@@ -48,6 +49,7 @@ export class ClientController {
    */
   async getById(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
+    assertUuid(id, "id");
 
     const client = await this.getClientUseCase.execute(id);
 
@@ -70,6 +72,7 @@ export class ClientController {
    */
   async update(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
+    assertUuid(id, "id");
 
     const client = await this.updateClientUseCase.execute(id, req.body);
 
@@ -82,6 +85,7 @@ export class ClientController {
    */
   async delete(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
+    assertUuid(id, "id");
 
     const result = await this.deleteClientUseCase.execute(id);
 

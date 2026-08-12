@@ -1,4 +1,5 @@
 import { ClientRepository } from "../../../domain/repositories/client-repository";
+import { AppError } from "../../../presentation/middlewares/error-handler";
 
 /**
  * Delete Client Use Case
@@ -13,7 +14,7 @@ export class DeleteClientUseCase {
     const deleted = await this.clientRepository.delete(id);
 
     if (!deleted) {
-      throw new Error("Client not found");
+      throw new AppError(404, "Client not found");
     }
 
     return { deleted: true };

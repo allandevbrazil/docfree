@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { QuoteController } from "../controllers/quote-controller";
 import { Container } from "../../shared/container";
+import { asyncHandler } from "../middlewares/async-handler";
 
 /**
  * Quote Routes
@@ -265,24 +266,14 @@ const controller = new QuoteController(
  *       500:
  *         description: Internal server error
  */
-router.get("/", (req, res) => {
-  void controller.list(req, res);
-});
+router.get("/", asyncHandler((req, res) => controller.list(req, res)));
 
-router.get("/:id", (req, res) => {
-  void controller.getById(req, res);
-});
+router.get("/:id", asyncHandler((req, res) => controller.getById(req, res)));
 
-router.post("/", (req, res) => {
-  void controller.create(req, res);
-});
+router.post("/", asyncHandler((req, res) => controller.create(req, res)));
 
-router.put("/:id", (req, res) => {
-  void controller.update(req, res);
-});
+router.put("/:id", asyncHandler((req, res) => controller.update(req, res)));
 
-router.delete("/:id", (req, res) => {
-  void controller.delete(req, res);
-});
+router.delete("/:id", asyncHandler((req, res) => controller.delete(req, res)));
 
 export default router;

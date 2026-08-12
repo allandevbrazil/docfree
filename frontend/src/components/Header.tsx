@@ -1,5 +1,3 @@
-import { Icon } from "./Icon";
-
 export type PageKey = "dashboard" | "clients" | "quotes";
 
 interface HeaderProps {

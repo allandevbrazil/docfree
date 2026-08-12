@@ -1,5 +1,6 @@
 import { ClientRepository } from "../../../domain/repositories/client-repository";
 import { ClientResponse } from "../../dtos/client-dto";
+import { AppError } from "../../../presentation/middlewares/error-handler";
 
 /**
  * Get Client Use Case
@@ -13,7 +14,7 @@ export class GetClientUseCase {
     const client = await this.clientRepository.findById(id);
 
     if (!client) {
-      throw new Error("Client not found");
+      throw new AppError(404, "Client not found");
     }
 
     return {

@@ -1,5 +1,6 @@
 import { ClientRepository } from "../../../domain/repositories/client-repository";
 import { UpdateClientInput, ClientResponse } from "../../dtos/client-dto";
+import { AppError } from "../../../presentation/middlewares/error-handler";
 
 /**
  * Update Client Use Case
@@ -14,7 +15,7 @@ export class UpdateClientUseCase {
     const existing = await this.clientRepository.findById(id);
 
     if (!existing) {
-      throw new Error("Client not found");
+      throw new AppError(404, "Client not found");
     }
 
     // Business rule: email must be unique if being changed
@@ -23,7 +24,7 @@ export class UpdateClientUseCase {
         input.email.trim().toLowerCase()
       );
       if (emailInUse && emailInUse.id !== id) {
-        throw new Error("A client with this email already exists");
+        throw new AppError(409, "A client with this email already exists");
       }
     }
 
@@ -42,7 +43,7 @@ export class UpdateClientUseCase {
     });
 
     if (!client) {
-      throw new Error("Client not found");
+      throw new AppError(404, "Client not found");
     }
 
     return {
